@@ -1,0 +1,34 @@
+# Data and model artifacts (large / not portable / often private)
+data/
+*.npy
+*.npz
+*.csv
+experiments/
+checkpoints/
+outputs/
+logs/
+*.pth
+*.pt
+*.pkl
+
+# Notebook checkpoints and executed HTML exports
+.ipynb_checkpoints/
+*.html
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# Environments
+.venv/
+venv/
+env/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store

@@ -1,0 +1,260 @@
+# =============================================================================
+# Data configuration
+# =============================================================================
+
+# Imaging modalities to load. Each name must have a matching "<name>.npy"
+# (image array) and "<name>_index.csv" (per-sample validity mask) in
+# data_directory. Uncomment additional modalities to fuse more imaging types.
+modality:
+  - nback_2bv0b_beta
+  #- T1
+  #- RNI
+  #- sst_csvcg_beta
+  #- mid_allvn_beta
+
+# Drop subjects who are missing data in every requested modality.
+Drop_missing_modalities_flag: true
+
+# Path to the directory containing the .npy imaging arrays, the modality
+# index CSVs, and the phenotype/behavioral data frame. Not included in this
+# repository -- see README for the expected directory layout.
+data_directory: ./data/
+
+data_frame: phenotype_data.csv
+
+# Prediction targets. This project predicts several cognitive/behavioral
+# outcomes from the same brain scan at once; each target also has a
+# plausible-value interval used to drop clearly invalid rows.
+output_interval_flag: true
+output:
+  - name: nc_y_nihtb__comp__cryst__uncor_score
+    interval: [50, 150]
+  #- name: nc_y_nihtb__comp__tot__uncor_score
+  #  interval: [50, 150]
+  #- name: nc_y_nihtb__comp__fluid__uncor_score
+  #  interval: [50, 150]
+  - name: mr_y_tfmri__nback__beh__2b_acc
+    interval: [0.6, 1]
+  #- name: ph_y_anthr__waist_001
+  #  interval: [10, 60]
+  #- name: mr_y_tfmri__sst__beh__ssrt_intgr
+  #  interval: [50, 700]
+
+covariates_flag: false
+covariates:
+  - interview_age
+  - ab_g_stc__cohort_sex
+  - ab_g_dyn__design_mr__manufact
+  - ab_g_dyn__cohort_income__hhold__3lvl
+  - ab_g_dyn__cohort_edu__cgs
+  - ab_g_dyn__design_mr__software
+  - ab_g_stc__cohort_ethn
+  - mr_y_qc__raw__tfmri__nback__mot_mean
+  - gn_y_popstruct_pc__01
+  - gn_y_popstruct_pc__02
+  - gn_y_popstruct_pc__03
+  - gn_y_popstruct_pc__04
+  - gn_y_popstruct_pc__05
+  - gn_y_popstruct_pc__06
+  - gn_y_popstruct_pc__07
+  - gn_y_popstruct_pc__08
+  - gn_y_popstruct_pc__09
+  - gn_y_popstruct_pc__10
+
+# =============================================================================
+# Cohort filtering
+# =============================================================================
+
+time_point_flag: true
+## Available session labels: ses-00A, ses-04A, ses-02A, ses-06A
+time_point:
+  - ses-00A
+  - ses-02A
+  - ses-04A
+  - ses-06A
+
+manufacture_flag: false
+manufacture:
+  - ab_g_dyn__design_mr__manufact
+## Available scanner manufacturers: SIEMENS, GE MEDICAL SYSTEMS, Philips Medical Systems, Siemens Healthineers
+manufacture_filter:
+  - SIEMENS
+
+# =============================================================================
+# Outlier detection (currently informational only -- see README)
+# =============================================================================
+
+outlier_flag: false
+outlier_y_method: iqr  # 'iqr', 'zscore', 'modified_z', or 'performance'
+outlier_source: both  # 'output', 'images', or 'both'
+outlier_image_method: iqr
+outlier_combine_strategy: union  # 'union', 'intersection', or 'weighted'
+outlier_modalities_to_outlier:  # 0-indexed
+  - 0
+outlier_min_possible_output: 0.60
+outlier_max_possible_output: 1
+
+# =============================================================================
+# Per-image normalization
+# =============================================================================
+
+normalizer_flag: true
+image_normalizer_lower_quantile: 0.01
+image_normalizer_upper_quantile: 0.99
+image_normalizer_normalization_method: z-score  # 'z-score', 'min-max', 'robust', or 'none'
+image_normalizer_modalities_to_clip:  # 0-indexed
+  - 0
+image_normalizer_modalities_to_normalize:
+  - 0
+
+# =============================================================================
+# Per-image smoothing
+# =============================================================================
+
+smoother_flag: false
+image_smoother_fwhm: 2
+image_smoother_modalities_to_smooth:
+  - 0
+
+# =============================================================================
+# Model architecture
+# =============================================================================
+
+layers_info:
+  cnn_layers:
+    - filters: 32
+      kernel_size: 3
+      stride: 1
+      padding: 1
+      activation: relu
+      batch_norm: true
+      dropout: 0.1
+      pool_size: 2
+      pool_stride: 2
+    - filters: 64
+      kernel_size: 3
+      stride: 1
+      padding: 1
+      activation: relu
+      batch_norm: true
+      dropout: 0.1
+      pool_size: 2
+      pool_stride: 2
+    - filters: 128
+      kernel_size: 3
+      stride: 1
+      padding: 1
+      activation: relu
+      batch_norm: true
+      dropout: 0.1
+      pool_size: 2
+      pool_stride: 2
+    - filters: 256
+      kernel_size: 3
+      stride: 1
+      padding: 1
+      activation: relu
+      batch_norm: true
+      dropout: 0.1
+      pool_size: 2
+      pool_stride: 2
+
+  transformer_layers:
+    - embed_dim: 256
+      num_heads: 8
+      mlp_ratio: 4.0
+      dropout: 0.1
+      attention_dropout: 0.0
+    - embed_dim: 256
+      num_heads: 8
+      mlp_ratio: 4.0
+      dropout: 0.1
+      attention_dropout: 0.0
+    - embed_dim: 256
+      num_heads: 8
+      mlp_ratio: 4.0
+      dropout: 0.1
+      attention_dropout: 0.0
+    - embed_dim: 256
+      num_heads: 8
+      mlp_ratio: 4.0
+      dropout: 0.1
+      attention_dropout: 0.0
+    - embed_dim: 256
+      num_heads: 16
+      mlp_ratio: 4.0
+      dropout: 0.1
+      attention_dropout: 0.0
+
+  fc_layers:
+    - units: 512
+      activation: relu
+      dropout: 0.0
+      batch_norm: true
+    - units: 256
+      activation: relu
+      dropout: 0.0
+      batch_norm: true
+    - units: 128
+      activation: relu
+      dropout: 0.0
+      batch_norm: true
+    - units: 64
+      activation: relu
+      dropout: 0.0
+      batch_norm: true
+
+  patch_size: 4
+
+# model_type options:
+#   3DCNN - convolutional layers + fully connected head
+#   3DVT  - 3D Vision Transformer + fully connected head
+#   3DHB  - hybrid: convolutional layers + transformer + fully connected head
+model_type: 3DHB
+fusion_type: add  # 'concat', 'add', 'gate', 'attention'
+input_shapes:
+  - 1
+  - 67
+  - 67
+  - 83
+
+# =============================================================================
+# Training configuration
+# =============================================================================
+
+n_folds: 10
+fold_strategy: family  # 'random', 'family', or 'site' -- see README for why this matters
+train_ratio: 0.8
+val_ratio: 0.1
+test_ratio: 0.1
+batch_size: 32
+n_epochs: 200
+learning_rate: 0.001
+weight_decay: 0.0001
+optimizer_type: adamw  # adam, adamw, sgd
+loss_function: mse  # 'mse' or 'mae'
+scheduler_type: reduce_on_plateau  # reduce_on_plateau, cosine, step
+scheduler_params:
+  factor: 0.1
+  patience: 10
+clip_grad: 1.0
+early_stopping_patience: 30
+
+# =============================================================================
+# Data augmentation (training set only)
+# =============================================================================
+
+augmentation_config:
+  enabled: true
+  rotation:
+    enabled: true
+    max_degrees: 30
+    prob: 0.4
+  flip:
+    enabled: false
+    prob: 0.1
+  noise:
+    enabled: true
+    mean: 0.0
+    std: 0.05
+    prob: 0.4
