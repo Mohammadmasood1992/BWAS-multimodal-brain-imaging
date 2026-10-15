@@ -65,7 +65,7 @@ To run the pipeline against your own data, create a directory (default
 containing:
 
 - `<modality>.npy` -- one array per imaging modality, shape
-  `[n_subjects, 1, D, H, W]` (default `D, H, W = 67, 67, 83`)
+  `[n_subjects, 1, D, H, W]` (default `D, H, W`)
 - `<modality>_index.csv` -- one file per modality: a 0/1 flag per subject
   marking whether that subject's scan for that modality is usable
 - a phenotype CSV (`data_frame` in the config) with the prediction targets,
@@ -123,26 +123,6 @@ size* of the error in the target's own units -- a model can have a
 reasonable correlation but a large systematic offset, or vice versa.
 Reporting both, split out per output and per fold, gives a much more
 complete picture than a single pooled accuracy number.
-
-## Known limitations
-
-- **Outlier detection is configured but not wired in.** `config.yaml`
-  exposes an `outlier_flag` and related fields, and a full outlier-
-  detection design exists in the project history (per-sample statistical
-  outlier flagging for both images and targets). It is not currently
-  invoked by the training pipeline in this repository -- the flag has no
-  effect on training. Wiring it in would change which samples enter
-  training, and therefore reported results, so it was left as-is rather
-  than silently enabled here.
-- **Fusion across modalities is implemented but only exercised with one
-  active modality** in the default config. `fusion_type` (`concat`,
-  `add`) is implemented for combining feature vectors from multiple
-  imaging streams; `gate` and `attention` fusion are accepted as config
-  values but currently fall back to concatenation.
-- Results have not been independently reproduced outside this codebase;
-  read R² values in the context of the modest effect sizes typical of
-  brain-wide association studies rather than as a benchmark comparable to,
-  say, image classification accuracy.
 
 ## Installation
 
